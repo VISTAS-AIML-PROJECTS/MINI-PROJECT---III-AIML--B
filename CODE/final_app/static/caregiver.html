@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EchoGenesis — Caregiver</title>
+<style>
+  :root {
+    --grad: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4);
+    --bg: #0a0a0a; --card: #161616; --border: #272727;
+    --text: #f5f5f5; --text-dim: #8a8a8a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto;
+    padding: 16px; color: var(--text); background: var(--bg); min-height: 100vh;
+  }
+  h1 {
+    font-size: 22px; font-weight: 800; text-align: center;
+    background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+  }
+  .subtitle { text-align: center; color: var(--text-dim); font-size: 13px; margin-bottom: 16px; }
+
+  #alert-banner {
+    display: none; background: linear-gradient(135deg, #5c0d1a, #8f1a1a);
+    border: 1px solid #ff5c7a; border-radius: 16px; padding: 14px;
+    margin-bottom: 16px; text-align: center;
+  }
+  #alert-banner .label { font-weight: 800; font-size: 14px; color: #ff9eb3; }
+  #alert-banner .detail { font-size: 12.5px; color: #ffd0da; margin-top: 4px; }
+
+  .stats-row { display: flex; gap: 10px; margin-bottom: 16px; }
+  .stat-box {
+    flex: 1; background: var(--card); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px; text-align: center;
+  }
+  .stat-num { font-size: 22px; font-weight: 800; }
+  .stat-label { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+
+  .section {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 18px; padding: 16px; margin-bottom: 16px;
+  }
+  .section h2 { font-size: 14px; margin: 0 0 10px; color: #c9b3ff; }
+
+  .activity-item {
+    padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 13.5px;
+  }
+  .activity-item:last-child { border-bottom: none; }
+  .activity-item .text { font-weight: 600; }
+  .activity-item .meta { font-size: 11px; color: var(--text-dim); margin-top: 2px; }
+  .activity-item.emergency .text { color: #ff8095; }
+
+  input[type=text] {
+    width: 100%; padding: 11px; border-radius: 12px; border: 1px solid var(--border);
+    background: #1d1d1d; color: var(--text); font-size: 14px; margin-bottom: 8px;
+  }
+  button {
+    width: 100%; padding: 11px; border-radius: 12px; border: none;
+    background: var(--grad); color: white; font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  .phrase-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13.5px;
+  }
+  .phrase-row:last-child { border-bottom: none; }
+  .del-btn {
+    width: auto; padding: 4px 10px; font-size: 11px; background: #3a1e26; color: #ff8095;
+  }
+</style>
+</head>
+<body>
+
+<h1>EchoGenesis</h1>
+<div class="subtitle">Caregiver View</div>
+
+<div id="alert-banner">
+  <div class="label">⚠️ Emergency phrase used</div>
+  <div class="detail" id="alert-detail"></div>
+</div>
+
+<div class="stats-row">
+  <div class="stat-box"><div class="stat-num" id="stat-today">–</div><div class="stat-label">TODAY</div></div>
+  <div class="stat-box"><div class="stat-num" id="stat-week">–</div><div class="stat-label">THIS WEEK</div></div>
+</div>
+
+<div class="section">
+  <h2>Recent Activity</h2>
+  <div id="activity-feed">Loading...</div>
+</div>
+
+<div class="section">
+  <h2>Add a Custom Phrase</h2>
+  <input type="text" id="phrase-input" placeholder="e.g. Please turn the TV on">
+  <button id="add-phrase-btn">Add Phrase</button>
+  <div id="phrase-list" style="margin-top:10px;"></div>
+</div>
+
+<script>
+const VOICE = 'male';
+const LANGUAGE = 'en';
+
+function timeAgo(ts) {
+  const diff = (Date.now() - new Date(ts + 'Z').getTime()) / 1000;
+  if (diff < 60) return 'just now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+  return Math.floor(diff / 86400) + 'd ago';
+}
+
+function refresh() {
+  fetch('/activity/recent?limit=20')
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('stat-today').textContent = data.stats.today;
+      document.getElementById('stat-week').textContent = data.stats.week;
+
+      const banner = document.getElementById('alert-banner');
+      if (data.last_emergency && data.last_emergency.minutes_ago < 30) {
+        banner.style.display = 'block';
+        document.getElementById('alert-detail').textContent =
+          `"${data.last_emergency.text}" — ${timeAgo(data.last_emergency.timestamp)}`;
+      } else {
+        banner.style.display = 'none';
+      }
+
+      const feed = document.getElementById('activity-feed');
+      feed.innerHTML = '';
+      if (data.recent.length === 0) {
+        feed.innerHTML = '<span style="color:var(--text-dim);">No activity yet.</span>';
+      }
+      data.recent.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'activity-item' + (item.is_emergency ? ' emergency' : '');
+        div.innerHTML = `<div class="text">${item.text}</div>
+          <div class="meta">${item.language.toUpperCase()} · ${item.emotion} · ${timeAgo(item.timestamp)}</div>`;
+        feed.appendChild(div);
+      });
+    });
+
+  fetch(`/quick_phrases?voice=${VOICE}&language=${LANGUAGE}`)
+    .then(res => res.json())
+    .then(data => {
+      const custom = data.phrases.filter(p => p.id.startsWith('custom_'));
+      const list = document.getElementById('phrase-list');
+      list.innerHTML = '';
+      custom.forEach(p => {
+        const row = document.createElement('div');
+        row.className = 'phrase-row';
+        const id = p.id.replace('custom_', '');
+        row.innerHTML = `<span>${p.text}</span>`;
+        const delBtn = document.createElement('button');
+        delBtn.className = 'del-btn';
+        delBtn.textContent = 'Remove';
+        delBtn.onclick = () => {
+          const fd = new FormData();
+          fd.append('phrase_id', id);
+          fetch('/activity/delete_phrase', { method: 'POST', body: fd }).then(refresh);
+        };
+        row.appendChild(delBtn);
+        list.appendChild(row);
+      });
+    });
+}
+
+document.getElementById('add-phrase-btn').onclick = () => {
+  const input = document.getElementById('phrase-input');
+  const text = input.value.trim();
+  if (!text) return;
+  const fd = new FormData();
+  fd.append('text', text);
+  fd.append('voice', VOICE);
+  fd.append('language', LANGUAGE);
+  fetch('/activity/add_phrase', { method: 'POST', body: fd }).then(() => {
+    input.value = '';
+    refresh();
+  });
+};
+
+refresh();
+setInterval(refresh, 10000);
+</script>
+
+</body>
+</html>

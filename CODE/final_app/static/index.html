@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EchoGenesis</title>
+<link rel="manifest" href="/static/manifest.json">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="icon" href="/static/icon-192.png">
+<style>
+  :root {
+    --grad: linear-gradient(135deg, #f58529, #dd2a7b, #8134af, #515bd4);
+    --bg: #0a0a0a;
+    --card: #161616;
+    --border: #272727;
+    --text: #f5f5f5;
+    --text-dim: #8a8a8a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    font-family: -apple-system, 'SF Pro Display', sans-serif;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 16px 16px 100px;
+    color: var(--text);
+    background: var(--bg);
+    min-height: 100vh;
+  }
+
+  /* Splash intro */
+  #splash {
+    position: fixed; inset: 0; z-index: 999;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    perspective: 800px;
+    animation: splash-out 0.6s ease 1.4s forwards;
+  }
+  #splash-logo {
+    width: 90px; height: 90px; border-radius: 26px;
+    background: var(--grad);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 40px; font-weight: 700;
+    animation: splash-spin 1.3s cubic-bezier(.2,.8,.3,1);
+    box-shadow: 0 0 60px rgba(221,42,123,0.5);
+  }
+  @keyframes splash-spin {
+    0%   { transform: rotateY(-180deg) scale(0.3); opacity: 0; }
+    60%  { transform: rotateY(20deg) scale(1.08); opacity: 1; }
+    100% { transform: rotateY(0deg) scale(1); opacity: 1; }
+  }
+  @keyframes splash-out {
+    to { opacity: 0; visibility: hidden; pointer-events: none; }
+  }
+
+  header { text-align: center; padding: 20px 0 8px; }
+  header h1 {
+    font-size: 26px; margin: 0; font-weight: 800;
+    background: var(--grad);
+    -webkit-background-clip: text; background-clip: text;
+    color: transparent;
+    display: inline-block;
+  }
+  .subtitle { color: var(--text-dim); font-size: 13px; margin-top: 2px; }
+
+  .toggle-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .toggle-btn {
+    flex: 1; padding: 11px; border-radius: 14px;
+    border: 1px solid var(--border); background: var(--card);
+    color: var(--text); font-size: 14px; font-weight: 600;
+    cursor: pointer; text-align: center;
+    transition: transform 0.15s ease, background 0.2s ease;
+  }
+  .toggle-btn:active { transform: scale(0.95); }
+  .toggle-btn.active { background: var(--grad); border-color: transparent; }
+  .toggle-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+  .toggle-btn.small { padding: 8px; font-size: 12.5px; border-radius: 10px; }
+
+  .section {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+  .section.emergency { border-color: #4a1f2a; background: linear-gradient(180deg, #1c1012, #161616); }
+  .section h2 { font-size: 14px; margin: 0 0 4px; font-weight: 700; letter-spacing: 0.3px; }
+  .section.emergency h2 { color: #ff5c7a; }
+  .section:not(.emergency) h2 { color: #c9b3ff; }
+
+  .phrase-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .phrase-btn {
+    border-radius: 14px;
+    padding: 12px;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    line-height: 1.3;
+    border: 1px solid var(--border);
+    background: #1d1d1d;
+    color: var(--text);
+    transition: transform 0.12s ease, background 0.2s ease;
+  }
+  .phrase-btn:active { transform: scale(0.94); background: #262626; }
+  .phrase-btn.emergency-btn { border-color: #3a1e26; }
+  .phrase-btn.common-btn { border-color: #262142; }
+  .phrase-btn:disabled { opacity: 0.4; cursor: wait; }
+  .phrase-native { font-weight: 700; }
+  .phrase-english { color: var(--text-dim); font-size: 10.5px; margin-top: 3px; }
+
+  textarea, input[type=text] {
+    width: 100%; font-size: 15px; padding: 12px;
+    border-radius: 14px; border: 1px solid var(--border);
+    background: #1d1d1d; color: var(--text); font-family: inherit;
+  }
+  textarea { height: 70px; resize: none; }
+  textarea:focus, input:focus { outline: none; border-color: #8134af; }
+
+  button.speak-btn {
+    background: var(--grad); color: white; border: none;
+    padding: 13px 22px; border-radius: 16px; font-size: 15px;
+    font-weight: 700; cursor: pointer; margin-top: 10px; width: 100%;
+    transition: transform 0.12s ease;
+  }
+  button.speak-btn:active { transform: scale(0.97); }
+  button.speak-btn:disabled { background: #333; }
+
+  .identity-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: #161b12; border: 1px solid #2a3a1f; color: #9bdc7a;
+    padding: 5px 12px; border-radius: 20px; font-size: 11.5px;
+    font-weight: 600; margin: 6px auto 0; width: fit-content;
+    cursor: pointer;
+  }
+  .identity-dot { width: 7px; height: 7px; border-radius: 50%; background: #9bdc7a; }
+  .checkin-btn {
+    display: block; margin: 8px auto 0; padding: 4px 10px;
+    border-radius: 20px; font-size: 10.5px; font-weight: 600;
+    background: transparent; border: 1px solid #333; color: var(--text-dim);
+    cursor: pointer;
+  }
+  .checkin-panel {
+    text-align: center; margin-top: 10px;
+  }
+  .checkin-timer { font-size: 13px; color: var(--text-dim); margin: 6px 0; }
+  .record-dot {
+    width: 10px; height: 10px; border-radius: 50%; background: #ff4d4d;
+    display: inline-block; margin-right: 6px; animation: pulse 1s infinite;
+  }
+  @keyframes pulse { 50% { opacity: 0.3; } }
+  .emotion-row {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px;
+  }
+  .emotion-chip {
+    padding: 6px 12px; border-radius: 20px; font-size: 12px;
+    border: 1px solid var(--border); background: #1d1d1d; color: var(--text-dim);
+    cursor: pointer; transition: all 0.15s ease;
+  }
+  .emotion-chip.active { background: var(--grad); color: white; border-color: transparent; }
+  .suggestion-row { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+  .suggestion-chip {
+    text-align: left; padding: 9px 12px; border-radius: 12px; font-size: 13px;
+    background: #1d1d1d; border: 1px dashed #3a3a3a; color: var(--text-dim);
+    cursor: pointer;
+  }
+  .suggestion-chip:active { background: #262626; }
+  #status { margin-top: 8px; font-size: 12.5px; color: var(--text-dim); min-height: 16px; }
+  audio { width: 100%; margin-top: 12px; border-radius: 12px; }
+  audio::-webkit-media-controls-panel { background: var(--card); }
+</style>
+<link rel="stylesheet" href="/static/a11y.css">
+</head>
+<body>
+
+<div id="splash"><div id="splash-logo">EG</div></div>
+<button class="a11y-toggle" id="a11y-toggle" aria-label="Accessibility">♿</button>
+<div class="a11y-panel" id="a11y-panel">
+  <h3>ACCESSIBILITY</h3>
+  <div class="a11y-row"><label for="scan-enable">Switch scanning</label><input type="checkbox" id="scan-enable"></div>
+  <div id="scan-speed-row" style="display:none;flex-direction:column;margin-bottom:10px;">
+    <label>Scan speed: <span id="scan-speed-val">1.2s</span></label>
+    <input type="range" id="scan-speed" min="0.5" max="3" step="0.1" value="1.2">
+  </div>
+  <div class="a11y-row"><label for="gaze-enable">Eye tracking (experimental)</label><input type="checkbox" id="gaze-enable"></div>
+  <button id="gaze-calibrate-btn" style="display:none;">Calibrate</button>
+</div>
+<button class="switch-select-btn" id="switch-select-btn">SELECT</button>
+<div class="gaze-dot" id="gaze-dot"></div>
+<div class="dwell-ring" id="dwell-ring"></div>
+
+<header>
+  <h1>EchoGenesis</h1>
+  <div class="subtitle">Speak in your own voice</div>
+  <div class="identity-badge" id="identity-badge" style="display:none;">
+    <span class="identity-dot"></span><span id="identity-text"></span>
+  </div>
+  <button class="checkin-btn" id="checkin-open-btn">🎙️ Record check-in</button>
+  <a href="/caregiver" style="text-decoration:none;"><button class="checkin-btn" style="margin-top:6px;">👨‍👩‍👧 Caregiver view</button></a>
+  <div class="checkin-panel" id="checkin-panel" style="display:none;">
+    <button class="speak-btn" id="checkin-record-btn" style="max-width:220px;">Start Recording</button>
+    <div class="checkin-timer" id="checkin-timer"></div>
+    <audio id="checkin-preview" controls style="display:none; max-width:300px;"></audio>
+    <div id="checkin-actions" style="display:none; margin-top:8px;">
+      <button class="speak-btn" id="checkin-submit-btn" style="max-width:220px;">Submit Check-in</button>
+    </div>
+    <div id="checkin-status" style="font-size:12px; color:var(--text-dim); margin-top:6px;"></div>
+  </div>
+</header>
+
+<div class="toggle-row" id="voice-toggle">
+  <button class="toggle-btn active" data-voice="male">Male voice</button>
+  <button class="toggle-btn" data-voice="female">Female voice</button>
+</div>
+
+<div class="toggle-row" id="lang-toggle">
+  <button class="toggle-btn active" data-lang="en">English</button>
+  <button class="toggle-btn" data-lang="ta">Tamil</button>
+  <button class="toggle-btn" data-lang="hi" disabled>Hindi</button>
+  <button class="toggle-btn" data-lang="ml" disabled>Malayalam</button>
+</div>
+
+<div class="toggle-row small" id="register-toggle" style="display:none;">
+  <button class="toggle-btn small active" data-register="casual">Casual</button>
+  <button class="toggle-btn small" data-register="formal">Formal</button>
+</div>
+
+<div class="section emergency">
+  <h2>🚨 EMERGENCY</h2>
+  <div class="phrase-grid" id="emergency-phrases">Loading...</div>
+</div>
+
+<div class="section">
+  <h2>💬 COMMON PHRASES</h2>
+  <div class="phrase-grid" id="common-phrases">Loading...</div>
+</div>
+
+<div class="section">
+  <h2 id="tts-heading">✨ TYPE ANYTHING ELSE</h2>
+  <div class="emotion-row" id="emotion-row">
+    <button class="emotion-chip active" data-emotion="neutral">Neutral</button>
+    <button class="emotion-chip" data-emotion="urgent">Urgent</button>
+    <button class="emotion-chip" data-emotion="happy">Happy</button>
+    <button class="emotion-chip" data-emotion="calm">Calm</button>
+    <button class="emotion-chip" data-emotion="sad">Sad</button>
+    <button class="emotion-chip" data-emotion="surprised">Surprised</button>
+    <button class="emotion-chip" data-emotion="playful">Playful</button>
+    <button class="emotion-chip" data-emotion="whisper">Whisper</button>
+  </div>
+  <textarea id="text-input" placeholder="Type what you want to say..."></textarea>
+  <div class="suggestion-row" id="suggestion-row"></div>
+  <button class="speak-btn" id="speak-btn">Speak</button>
+  <div id="status"></div>
+</div>
+
+<audio id="player" controls style="display:none;"></audio>
+
+<script>
+setTimeout(() => { const s = document.getElementById('splash'); if (s) s.remove(); }, 2200);
+
+const player = document.getElementById('player');
+const status = document.getElementById('status');
+let currentVoice = 'male';
+let currentLang = 'en';
+let currentRegister = 'casual';
+let currentEmotion = 'neutral';
+let suggestTimer = null;
+
+async function speakText(text, triggerBtn) {
+  status.textContent = 'Generating speech...';
+  if (triggerBtn) triggerBtn.disabled = true;
+  player.style.display = 'none';
+
+  const formData = new FormData();
+  formData.append('text', text);
+  formData.append('voice', currentVoice);
+  formData.append('emotion', currentEmotion);
+  formData.append('language', currentLang);
+  if (currentLang === 'ta') formData.append('register', currentRegister);
+
+  try {
+    const res = await fetch('/speak', { method: 'POST', body: formData });
+    const contentType = res.headers.get('content-type') || '';
+    if (res.ok && contentType.includes('audio')) {
+      const blob = await res.blob();
+      player.src = URL.createObjectURL(blob);
+      player.style.display = 'block';
+      player.play();
+      status.textContent = 'Done.';
+    } else {
+      const data = await res.json();
+      status.textContent = data.error || 'Error generating speech.';
+    }
+  } catch (err) {
+    status.textContent = 'Error: ' + err.message;
+  }
+  if (triggerBtn) triggerBtn.disabled = false;
+}
+
+function renderPhraseGrid(containerId, phrases, btnClass) {
+  const container = document.getElementById(containerId);
+  container.innerHTML = '';
+  if (phrases.length === 0) {
+    container.innerHTML = '<span style="color:var(--text-dim);">No recordings yet.</span>';
+    return;
+  }
+  phrases.forEach(p => {
+    const btn = document.createElement('button');
+    btn.className = 'phrase-btn ' + btnClass;
+    if (currentLang === 'ta') {
+      btn.innerHTML = `<div class="phrase-native">${p.text}</div><div class="phrase-english">(${p.english})</div>`;
+    } else {
+      btn.textContent = p.text;
+    }
+    btn.onclick = () => speakText(p.text, btn);
+    container.appendChild(btn);
+  });
+}
+
+function loadPhrases() {
+  document.getElementById('emergency-phrases').innerHTML = 'Loading...';
+  document.getElementById('common-phrases').innerHTML = 'Loading...';
+
+  let url = `/quick_phrases?voice=${currentVoice}&language=${currentLang}`;
+  if (currentLang === 'ta') url += `&register=${currentRegister}`;
+
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      const emergency = data.phrases.filter(p => /^\d/.test(p.id));
+      const common = data.phrases.filter(p => p.id.startsWith('C'));
+      renderPhraseGrid('emergency-phrases', emergency, 'emergency-btn');
+      renderPhraseGrid('common-phrases', common, 'common-btn');
+    });
+}
+
+function updateTtsHeading() {
+  document.getElementById('tts-heading').textContent =
+    currentLang === 'ta'
+      ? `✨ TYPE IN TAMIL (${currentRegister.toUpperCase()}) — AI VOICE COMING SOON`
+      : '✨ TYPE ANYTHING ELSE';
+}
+
+function setVoice(voice) {
+  currentVoice = voice;
+  document.querySelectorAll('#voice-toggle .toggle-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.voice === voice);
+  });
+  loadPhrases();
+  loadIdentityBadge();
+
+const checkinOpenBtn = document.getElementById('checkin-open-btn');
+const checkinPanel = document.getElementById('checkin-panel');
+const checkinRecordBtn = document.getElementById('checkin-record-btn');
+const checkinTimer = document.getElementById('checkin-timer');
+const checkinPreview = document.getElementById('checkin-preview');
+const checkinActions = document.getElementById('checkin-actions');
+const checkinSubmitBtn = document.getElementById('checkin-submit-btn');
+const checkinStatus = document.getElementById('checkin-status');
+
+let mediaRecorder, recordedChunks = [], recordTimerInterval, recordSeconds = 0;
+
+checkinOpenBtn.onclick = () => {
+  const open = checkinPanel.style.display === 'block';
+  checkinPanel.style.display = open ? 'none' : 'block';
+};
+
+checkinRecordBtn.onclick = async () => {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      clearInterval(recordTimerInterval);
+      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+      checkinPreview.src = URL.createObjectURL(blob);
+      checkinPreview.style.display = 'block';
+      checkinPreview._blob = blob;
+      checkinActions.style.display = 'block';
+      checkinRecordBtn.innerHTML = 'Start Recording';
+      checkinTimer.innerHTML = '';
+    };
+    mediaRecorder.start();
+    recordSeconds = 0;
+    checkinRecordBtn.innerHTML = 'Stop Recording';
+    checkinTimer.innerHTML = '<span class="record-dot"></span>0:00';
+    recordTimerInterval = setInterval(() => {
+      recordSeconds++;
+      const m = Math.floor(recordSeconds / 60), s = (recordSeconds % 60).toString().padStart(2, '0');
+      checkinTimer.innerHTML = `<span class="record-dot"></span>${m}:${s}`;
+    }, 1000);
+  } catch (err) {
+    checkinStatus.textContent = 'Microphone access denied or unavailable.';
+  }
+};
+
+checkinSubmitBtn.onclick = async () => {
+  if (!checkinPreview._blob) return;
+  checkinStatus.textContent = 'Uploading and processing...';
+  checkinSubmitBtn.disabled = true;
+
+  const formData = new FormData();
+  formData.append('voice', currentVoice);
+  formData.append('audio', checkinPreview._blob, 'checkin.webm');
+
+  try {
+    const res = await fetch('/voice_bank/checkin', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      checkinStatus.textContent = `Check-in saved. Similarity: ${Math.round(data.latest.avg_similarity * 100)}%`;
+      loadIdentityBadge();
+      checkinActions.style.display = 'none';
+      checkinPreview.style.display = 'none';
+    } else {
+      checkinStatus.textContent = 'Something went wrong.';
+    }
+  } catch (err) {
+    checkinStatus.textContent = 'Error: ' + err.message;
+  }
+  checkinSubmitBtn.disabled = false;
+};
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  document.querySelectorAll('#lang-toggle .toggle-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === lang);
+  });
+  document.getElementById('register-toggle').style.display = lang === 'ta' ? 'flex' : 'none';
+  updateTtsHeading();
+  loadPhrases();
+}
+
+function setRegister(register) {
+  currentRegister = register;
+  document.querySelectorAll('#register-toggle .toggle-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.register === register);
+  });
+  updateTtsHeading();
+  loadPhrases();
+}
+
+fetch('/voices')
+  .then(res => res.json())
+  .then(data => {
+    document.querySelector('[data-voice="male"]').disabled = !data.male;
+    document.querySelector('[data-voice="female"]').disabled = !data.female;
+  });
+
+function loadIdentityBadge() {
+  fetch(`/voice_bank_report?voice=${currentVoice}`)
+    .then(res => res.json())
+    .then(data => {
+      const badge = document.getElementById('identity-badge');
+      if (!data.sessions || data.sessions.length === 0) {
+        badge.style.display = 'none';
+        return;
+      }
+      const latest = data.sessions[data.sessions.length - 1];
+      const pct = Math.round(latest.avg_similarity * 100);
+      document.getElementById('identity-text').textContent =
+        `Voice identity: ${pct}% match to baseline`;
+      badge.style.display = 'inline-flex';
+    })
+    .catch(() => { document.getElementById('identity-badge').style.display = 'none'; });
+}
+loadIdentityBadge();
+
+const checkinOpenBtn = document.getElementById('checkin-open-btn');
+const checkinPanel = document.getElementById('checkin-panel');
+const checkinRecordBtn = document.getElementById('checkin-record-btn');
+const checkinTimer = document.getElementById('checkin-timer');
+const checkinPreview = document.getElementById('checkin-preview');
+const checkinActions = document.getElementById('checkin-actions');
+const checkinSubmitBtn = document.getElementById('checkin-submit-btn');
+const checkinStatus = document.getElementById('checkin-status');
+
+let mediaRecorder, recordedChunks = [], recordTimerInterval, recordSeconds = 0;
+
+checkinOpenBtn.onclick = () => {
+  const open = checkinPanel.style.display === 'block';
+  checkinPanel.style.display = open ? 'none' : 'block';
+};
+
+checkinRecordBtn.onclick = async () => {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    mediaRecorder.stop();
+    return;
+  }
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    recordedChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    mediaRecorder.ondataavailable = e => recordedChunks.push(e.data);
+    mediaRecorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop());
+      clearInterval(recordTimerInterval);
+      const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+      checkinPreview.src = URL.createObjectURL(blob);
+      checkinPreview.style.display = 'block';
+      checkinPreview._blob = blob;
+      checkinActions.style.display = 'block';
+      checkinRecordBtn.innerHTML = 'Start Recording';
+      checkinTimer.innerHTML = '';
+    };
+    mediaRecorder.start();
+    recordSeconds = 0;
+    checkinRecordBtn.innerHTML = 'Stop Recording';
+    checkinTimer.innerHTML = '<span class="record-dot"></span>0:00';
+    recordTimerInterval = setInterval(() => {
+      recordSeconds++;
+      const m = Math.floor(recordSeconds / 60), s = (recordSeconds % 60).toString().padStart(2, '0');
+      checkinTimer.innerHTML = `<span class="record-dot"></span>${m}:${s}`;
+    }, 1000);
+  } catch (err) {
+    checkinStatus.textContent = 'Microphone access denied or unavailable.';
+  }
+};
+
+checkinSubmitBtn.onclick = async () => {
+  if (!checkinPreview._blob) return;
+  checkinStatus.textContent = 'Uploading and processing...';
+  checkinSubmitBtn.disabled = true;
+
+  const formData = new FormData();
+  formData.append('voice', currentVoice);
+  formData.append('audio', checkinPreview._blob, 'checkin.webm');
+
+  try {
+    const res = await fetch('/voice_bank/checkin', { method: 'POST', body: formData });
+    const data = await res.json();
+    if (data.status === 'ok') {
+      checkinStatus.textContent = `Check-in saved. Similarity: ${Math.round(data.latest.avg_similarity * 100)}%`;
+      loadIdentityBadge();
+      checkinActions.style.display = 'none';
+      checkinPreview.style.display = 'none';
+    } else {
+      checkinStatus.textContent = 'Something went wrong.';
+    }
+  } catch (err) {
+    checkinStatus.textContent = 'Error: ' + err.message;
+  }
+  checkinSubmitBtn.disabled = false;
+};
+
+document.querySelectorAll('#voice-toggle .toggle-btn').forEach(b => {
+  b.onclick = () => setVoice(b.dataset.voice);
+});
+document.querySelectorAll('#lang-toggle .toggle-btn:not([disabled])').forEach(b => {
+  b.onclick = () => setLang(b.dataset.lang);
+});
+document.querySelectorAll('#register-toggle .toggle-btn').forEach(b => {
+  b.onclick = () => setRegister(b.dataset.register);
+});
+
+loadPhrases();
+
+document.querySelectorAll('.emotion-chip').forEach(chip => {
+  chip.onclick = () => {
+    currentEmotion = chip.dataset.emotion;
+    document.querySelectorAll('.emotion-chip').forEach(c => c.classList.toggle('active', c === chip));
+  };
+});
+
+const textInput = document.getElementById('text-input');
+const suggestionRow = document.getElementById('suggestion-row');
+
+textInput.addEventListener('input', () => {
+  clearTimeout(suggestTimer);
+  const prefix = textInput.value.trim();
+  if (prefix.length < 3) { suggestionRow.innerHTML = ''; return; }
+  suggestTimer = setTimeout(() => {
+    fetch(`/suggest?prefix=${encodeURIComponent(prefix)}&voice=${currentVoice}&language=${currentLang}`)
+      .then(res => res.json())
+      .then(data => {
+        suggestionRow.innerHTML = '';
+        data.suggestions.forEach(s => {
+          if (s.toLowerCase() === prefix.toLowerCase()) return;
+          const chip = document.createElement('button');
+          chip.className = 'suggestion-chip';
+          chip.textContent = s;
+          chip.onclick = () => { textInput.value = s; suggestionRow.innerHTML = ''; };
+          suggestionRow.appendChild(chip);
+        });
+      });
+  }, 300);
+});
+
+document.getElementById('speak-btn').onclick = () => {
+  const text = document.getElementById('text-input').value.trim();
+  if (!text) {
+    status.textContent = 'Type something first.';
+    return;
+  }
+  speakText(text, document.getElementById('speak-btn'));
+};
+</script>
+
+<script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/static/sw.js');
+}
+</script>
+
+<script src="/static/offline.js"></script>
+<script src="/static/a11y.js"></script>
+</body>
+</html>

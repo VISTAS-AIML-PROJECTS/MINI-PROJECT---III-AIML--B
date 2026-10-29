@@ -1,0 +1,24 @@
+# EchoGenesis — Person B (Module 4: TTS + Vocoder)
+# Install with: pip install -r requirements.txt
+# macOS (Apple Silicon): plain "torch"/"torchaudio" from PyPI already
+# include MPS (Metal/GPU) support — no special index URL needed like on
+# Linux/CUDA machines.
+
+torch
+torchaudio
+transformers>=4.35.0
+datasets
+soundfile
+librosa
+sentencepiece        # required by SpeechT5's tokenizer
+speechbrain           # for reading Person A's ECAPA embeddings format
+numpy
+scipy
+matplotlib
+tensorboard
+fastapi
+uvicorn
+jiwer                 # for WER evaluation later (Section 13)
+
+# Optional fallback path (Coqui TTS) — uncomment if you switch from SpeechT5
+# TTS
