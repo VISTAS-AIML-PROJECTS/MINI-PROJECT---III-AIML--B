@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GenVoice Caregiver</string>
+
+    <!-- Main Screen -->
+    <string name="talk_to_genvoice">Talk to GenVoice</string>
+    <string name="listening">Listening…</string>
+    <string name="thinking">Thinking…</string>
+    <string name="speaking">Speaking…</string>
+
+    <!-- Emergency -->
+    <string name="emergency_button">EMERGENCY</string>
+    <string name="emergency_alert">Emergency Alert Sent!</string>
+    <string name="emergency_help_coming">Your family has been notified. Help is on the way!</string>
+
+    <!-- Check-In -->
+    <string name="morning_checkin">Morning Check-In</string>
+    <string name="evening_checkin">Evening Check-In</string>
+    <string name="checkin_complete">Check-in Complete!</string>
+
+    <!-- Medication -->
+    <string name="medication_reminder">Time to take your medicine</string>
+    <string name="medication_taken">Medicine logged</string>
+
+    <!-- Status Messages -->
+    <string name="connecting">Connecting…</string>
+    <string name="no_internet">No internet connection</string>
+    <string name="error_occurred">Something went wrong</string>
+    <string name="try_again">Try Again</string>
+
+    <!-- Permissions -->
+    <string name="permission_microphone">GenVoice needs microphone permission to hear you</string>
+    <string name="permission_denied">Please allow microphone access in settings</string>
+    <string name="grant_permission">Grant Permission</string>
+
+    <!-- Greetings -->
+    <string name="good_morning">Good morning!</string>
+    <string name="good_evening">Good evening!</string>
+    <string name="hello">Hello!</string>
+
+    <!-- Welcome -->
+    <string name="welcome_message">Hi Margaret! I\'m GenVoice, your daily companion. Tap the button to talk to me!</string>
+</resources>
